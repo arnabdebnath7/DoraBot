@@ -2,7 +2,7 @@
 
 DoraBot is an autonomous personal AI companion inspired by Doraemon, featuring 4D Pocket Gadgets, Mini-Dora specialist modes, and automated free smart model routing through OmniRoute and OpenRouter.
 
-![DoraBot Mascot](/public/assets/dorabot_mascot.jpg)
+![DoraBot Mascot](public/assets/dorabot_mascot.jpg)
 
 ---
 
