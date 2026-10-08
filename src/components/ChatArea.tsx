@@ -1,5 +1,5 @@
 import React, { useRef, useEffect } from 'react';
-import { Bot, User, Copy, Check, Sparkles, Bell, Cpu, Zap, BookOpen } from 'lucide-react';
+import { Bot, User, Copy, Check, Sparkles, Bell, Cpu, Zap, BookOpen, Terminal, ChevronDown } from 'lucide-react';
 import type { ChatMessage, MiniDoraConfig, UserProfile } from '../types';
 
 interface ChatAreaProps {
@@ -10,6 +10,97 @@ interface ChatAreaProps {
   onSelectPrompt: (prompt: string) => void;
   onOpenGadgets: () => void;
 }
+
+const FormattedContent: React.FC<{
+  content: string;
+  onCopy: (text: string, id: string) => void;
+  copiedId: string | null;
+}> = ({ content, onCopy, copiedId }) => {
+  let thought = '';
+  let mainContent = content;
+  const thinkMatch = content.match(/<think>([\s\S]*?)<\/think>/i);
+  if (thinkMatch) {
+    thought = thinkMatch[1].trim();
+    mainContent = content.replace(/<think>[\s\S]*?<\/think>/i, '').trim();
+  }
+
+  const parts: React.ReactNode[] = [];
+  const codeBlockRegex = /```(\w+)?\n([\s\S]*?)```/g;
+  let lastIndex = 0;
+  let match: RegExpExecArray | null;
+
+  while ((match = codeBlockRegex.exec(mainContent)) !== null) {
+    if (match.index > lastIndex) {
+      parts.push(
+        <div key={`text-${lastIndex}`} className="whitespace-pre-wrap break-words my-1 font-sans">
+          {mainContent.slice(lastIndex, match.index)}
+        </div>
+      );
+    }
+
+    const lang = match[1] || 'code';
+    const code = match[2];
+    const codeId = `code-${match.index}`;
+
+    parts.push(
+      <div key={codeId} className="my-3 rounded-xl overflow-hidden border border-slate-700/80 bg-slate-950/90 shadow-xl">
+        <div className="flex items-center justify-between px-3.5 py-1.5 bg-slate-900 border-b border-slate-800 text-xs">
+          <div className="flex items-center space-x-1.5 text-slate-400 font-mono text-[11px]">
+            <Terminal className="w-3.5 h-3.5 text-sky-400" />
+            <span>{lang}</span>
+          </div>
+          <button
+            onClick={() => onCopy(code, codeId)}
+            className="flex items-center space-x-1 px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 text-[11px] transition-colors"
+          >
+            {copiedId === codeId ? (
+              <>
+                <Check className="w-3 h-3 text-emerald-400" />
+                <span className="text-emerald-400">Copied</span>
+              </>
+            ) : (
+              <>
+                <Copy className="w-3 h-3 text-slate-400" />
+                <span>Copy</span>
+              </>
+            )}
+          </button>
+        </div>
+        <pre className="p-3.5 text-xs font-mono text-sky-200/90 overflow-x-auto leading-relaxed">
+          <code>{code}</code>
+        </pre>
+      </div>
+    );
+
+    lastIndex = match.index + match[0].length;
+  }
+
+  if (lastIndex < mainContent.length) {
+    parts.push(
+      <div key={`text-${lastIndex}`} className="whitespace-pre-wrap break-words my-1 font-sans">
+        {mainContent.slice(lastIndex)}
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      {thought && (
+        <details className="mb-3 p-3 rounded-xl bg-slate-900/60 border border-sky-500/20 text-xs text-sky-300 group">
+          <summary className="font-semibold cursor-pointer flex items-center space-x-2 select-none hover:text-sky-200">
+            <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+            <span>22nd Century Cognitive Circuit Reasoning</span>
+            <ChevronDown className="w-3.5 h-3.5 ml-auto transition-transform group-open:rotate-180" />
+          </summary>
+          <div className="mt-2.5 pt-2.5 border-t border-slate-800 text-slate-400 font-mono text-[11px] whitespace-pre-wrap leading-relaxed">
+            {thought}
+          </div>
+        </details>
+      )}
+      {parts.length > 0 ? parts : <div className="whitespace-pre-wrap break-words">{mainContent}</div>}
+    </div>
+  );
+};
 
 export const ChatArea: React.FC<ChatAreaProps> = ({
   messages,
@@ -182,9 +273,11 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
                       : 'glass-panel border-sky-500/20 text-slate-200 rounded-tl-sm shadow-lg'
                   }`}
                 >
-                  <div className="whitespace-pre-wrap font-sans break-words">
-                    {msg.content}
-                  </div>
+                  <FormattedContent
+                    content={msg.content}
+                    onCopy={handleCopy}
+                    copiedId={copiedId}
+                  />
                 </div>
 
                 {/* Copy button */}

@@ -19,4 +19,22 @@ describe('Live OpenRouter / OmniRoute Integration Test', () => {
     expect(reply.length).toBeGreaterThan(5);
     console.log('✨ Live DoraBot Response:', reply);
   }, 25000);
+
+  it('should successfully get a live 4D Gadget completion from OmniRoute/OpenRouter', async () => {
+    const messages = [
+      {
+        role: 'system',
+        content: 'You are DoraBot using the Anywhere Door. Explain Tokyo in 1 short sentence.',
+      },
+      {
+        role: 'user',
+        content: 'Take me to Tokyo!',
+      },
+    ];
+
+    const reply = await callLLM('openrouter/free', messages);
+    expect(reply).toBeDefined();
+    expect(reply.length).toBeGreaterThan(5);
+    console.log('✨ Live Anywhere Door Response:', reply);
+  }, 25000);
 });

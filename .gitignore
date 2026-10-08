@@ -2,5 +2,6 @@ node_modules/
 dist/
 .env
 monitor.log
+.watchdog.pid
 *.apk
 .DS_Store

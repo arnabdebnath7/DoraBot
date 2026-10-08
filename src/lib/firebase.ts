@@ -63,31 +63,30 @@ initFirebase();
 // Mock / Sandbox Storage for when Firebase credentials are not yet authorized
 const MOCK_STORAGE_KEY = 'dorabot_sandbox_user';
 
-export async function loginWithGoogle(): Promise<UserProfile> {
-  const currentAuth = auth || initFirebase();
+// Reactive Auth Listener Registry
+const authListeners = new Set<(user: UserProfile | null) => void>();
 
-  if (currentAuth && googleProvider) {
+function notifyAuthListeners(user: UserProfile | null) {
+  authListeners.forEach((listener) => {
     try {
-      const res = await signInWithPopup(currentAuth, googleProvider);
-      const user = res.user;
-      return {
-        uid: user.uid,
-        displayName: user.displayName || 'Google Explorer',
-        email: user.email,
-        photoURL: user.photoURL,
-        providerId: 'google.com',
-      };
-    } catch (err: any) {
-      console.warn('Live Google Sign-In failed or was cancelled:', err);
-      // Fallback if domain is unauthorized in console
-      if (err.code === 'auth/unauthorized-domain' || err.code === 'auth/api-key-not-valid' || err.code === 'auth/configuration-not-found') {
-        throw new Error(`Firebase Auth Error: ${err.message}. You can switch to Demo Google Login or update config in Settings.`);
-      }
-      throw err;
+      listener(user);
+    } catch (e) {
+      console.error('Error in auth listener:', e);
     }
-  }
+  });
+}
 
-  // Fallback to Demo Google Session for offline / pre-authorization VM environment
+export function getCurrentLocalUser(): UserProfile | null {
+  const mockStored = localStorage.getItem(MOCK_STORAGE_KEY);
+  if (mockStored) {
+    try {
+      return JSON.parse(mockStored);
+    } catch (e) {}
+  }
+  return null;
+}
+
+export async function loginWithSandboxGoogle(): Promise<UserProfile> {
   const mockUser: UserProfile = {
     uid: 'google-uid-dorabot-888',
     displayName: 'Debnath Arnab',
@@ -97,7 +96,45 @@ export async function loginWithGoogle(): Promise<UserProfile> {
     isAnonymous: false,
   };
   localStorage.setItem(MOCK_STORAGE_KEY, JSON.stringify(mockUser));
+  notifyAuthListeners(mockUser);
   return mockUser;
+}
+
+export async function loginWithGoogle(): Promise<UserProfile> {
+  const currentAuth = auth || initFirebase();
+
+  if (currentAuth && googleProvider) {
+    try {
+      const res = await signInWithPopup(currentAuth, googleProvider);
+      const user = res.user;
+      const profile: UserProfile = {
+        uid: user.uid,
+        displayName: user.displayName || 'Google Explorer',
+        email: user.email,
+        photoURL: user.photoURL,
+        providerId: 'google.com',
+      };
+      localStorage.setItem(MOCK_STORAGE_KEY, JSON.stringify(profile));
+      notifyAuthListeners(profile);
+      return profile;
+    } catch (err: any) {
+      console.warn('Live Google Sign-In failed or was cancelled:', err);
+      // Fallback if domain is unauthorized in console
+      if (
+        err.code === 'auth/unauthorized-domain' ||
+        err.code === 'auth/api-key-not-valid' ||
+        err.code === 'auth/configuration-not-found'
+      ) {
+        throw new Error(
+          `Firebase Auth: ${err.message}. You can continue with Sandbox Google Account or update config in Settings.`
+        );
+      }
+      throw err;
+    }
+  }
+
+  // Fallback to Sandbox Google Session for offline / pre-authorization VM environment
+  return loginWithSandboxGoogle();
 }
 
 export async function logoutUser(): Promise<void> {
@@ -107,37 +144,53 @@ export async function logoutUser(): Promise<void> {
     } catch (e) {}
   }
   localStorage.removeItem(MOCK_STORAGE_KEY);
+  notifyAuthListeners(null);
 }
 
 export function subscribeAuthState(callback: (user: UserProfile | null) => void): () => void {
-  // Check mock storage first
-  const mockStored = localStorage.getItem(MOCK_STORAGE_KEY);
-  if (mockStored) {
-    try {
-      const parsed = JSON.parse(mockStored);
-      callback(parsed);
-      return () => {};
-    } catch (e) {}
+  authListeners.add(callback);
+
+  // Check current local state
+  const currentUser = getCurrentLocalUser();
+  if (currentUser) {
+    callback(currentUser);
+  } else if (auth && auth.currentUser) {
+    callback({
+      uid: auth.currentUser.uid,
+      displayName: auth.currentUser.displayName,
+      email: auth.currentUser.email,
+      photoURL: auth.currentUser.photoURL,
+      providerId: 'google.com',
+    });
+  } else {
+    callback(null);
   }
 
+  let firebaseUnsub: (() => void) | null = null;
   if (auth) {
-    return firebaseOnAuthStateChanged(auth, (user: User | null) => {
+    firebaseUnsub = firebaseOnAuthStateChanged(auth, (user: User | null) => {
       if (user) {
-        callback({
+        const profile: UserProfile = {
           uid: user.uid,
           displayName: user.displayName,
           email: user.email,
           photoURL: user.photoURL,
           providerId: 'google.com',
-        });
-      } else {
-        callback(null);
+        };
+        localStorage.setItem(MOCK_STORAGE_KEY, JSON.stringify(profile));
+        notifyAuthListeners(profile);
+      } else if (!getCurrentLocalUser()) {
+        notifyAuthListeners(null);
       }
     });
   }
 
-  callback(null);
-  return () => {};
+  return () => {
+    authListeners.delete(callback);
+    if (firebaseUnsub) {
+      firebaseUnsub();
+    }
+  };
 }
 
 export function saveFirebaseCustomConfig(config: Record<string, string>) {

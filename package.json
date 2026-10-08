@@ -10,7 +10,10 @@
     "build": "tsc && vite build",
     "preview": "vite preview",
     "test": "vitest run",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "monitor": "bash scripts/watchdog.sh status",
+    "monitor:start": "bash scripts/watchdog.sh start",
+    "monitor:stop": "bash scripts/watchdog.sh stop"
   },
   "dependencies": {
     "clsx": "^2.1.1",

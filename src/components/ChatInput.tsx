@@ -150,11 +150,21 @@ export const ChatInput: React.FC<ChatInputProps> = ({
 
         {/* Input Box with 21st.dev Glow & Voice Waveform */}
         <div className="relative rounded-2xl glass-input p-2 shadow-xl border border-sky-500/20 focus-within:border-sky-400/60 transition-all">
-          {/* Active Voice Waveform Bar */}
+          {/* Active Voice Waveform Bar with 21st.dev Audio Visualizer */}
           {isListening && (
-            <div className="flex items-center justify-center space-x-1.5 py-1 mb-2 bg-sky-950/40 rounded-lg border border-sky-500/30 text-sky-300 text-xs animate-pulse">
-              <Volume2 className="w-4 h-4 text-sky-400 animate-bounce" />
-              <span>DoraBot is listening to your voice... Speak clearly!</span>
+            <div className="flex items-center justify-between px-3 py-1.5 mb-2 bg-sky-950/70 rounded-xl border border-sky-400/40 text-sky-300 text-xs shadow-lg shadow-sky-500/20">
+              <div className="flex items-center space-x-2">
+                <Volume2 className="w-4 h-4 text-sky-400 animate-bounce" />
+                <span className="font-medium">Listening to your voice... Speak clearly!</span>
+              </div>
+              <div className="flex items-center space-x-1 h-6">
+                <span className="w-1 h-3 bg-sky-400 rounded-full animate-pulse"></span>
+                <span className="w-1 h-5 bg-amber-400 rounded-full animate-pulse [animation-delay:0.1s]"></span>
+                <span className="w-1 h-2 bg-sky-300 rounded-full animate-pulse [animation-delay:0.2s]"></span>
+                <span className="w-1 h-6 bg-red-400 rounded-full animate-pulse [animation-delay:0.3s]"></span>
+                <span className="w-1 h-4 bg-emerald-400 rounded-full animate-pulse [animation-delay:0.15s]"></span>
+                <span className="w-1 h-3 bg-sky-400 rounded-full animate-pulse [animation-delay:0.25s]"></span>
+              </div>
             </div>
           )}
 

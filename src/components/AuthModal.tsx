@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { X, ShieldCheck, LogIn, Sparkles, CheckCircle2 } from 'lucide-react';
-import { loginWithGoogle } from '../lib/firebase';
+import { loginWithGoogle, loginWithSandboxGoogle } from '../lib/firebase';
 import type { UserProfile } from '../types';
 
 interface AuthModalProps {
@@ -29,6 +29,20 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     } catch (err: any) {
       console.error('Google login error:', err);
       setErrorMsg(err.message || 'Google Sign-In failed. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSandboxLogin = async () => {
+    setIsLoading(true);
+    setErrorMsg(null);
+    try {
+      const user = await loginWithSandboxGoogle();
+      onLoginSuccess(user);
+      onClose();
+    } catch (err: any) {
+      setErrorMsg(err.message || 'Sandbox login failed.');
     } finally {
       setIsLoading(false);
     }
@@ -69,8 +83,14 @@ export const AuthModal: React.FC<AuthModalProps> = ({
           </div>
 
           {errorMsg && (
-            <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/30 text-red-300 text-xs text-left">
-              {errorMsg}
+            <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/30 text-red-300 text-xs text-left space-y-2">
+              <p>{errorMsg}</p>
+              <button
+                onClick={handleSandboxLogin}
+                className="text-[11px] font-semibold text-amber-300 hover:text-amber-200 flex items-center space-x-1"
+              >
+                <span>✨ Continue as Debnath Arnab (Sandbox Profile) →</span>
+              </button>
             </div>
           )}
 
@@ -100,6 +120,16 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               />
             </svg>
             <span>{isLoading ? 'Connecting to Google...' : 'Continue with Google'}</span>
+          </button>
+
+          {/* Sandbox Fallback Button */}
+          <button
+            onClick={handleSandboxLogin}
+            disabled={isLoading}
+            className="w-full flex items-center justify-center space-x-2 py-2.5 px-4 rounded-xl bg-slate-900/80 hover:bg-slate-800 border border-sky-500/40 text-sky-200 font-semibold text-xs transition-all hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50"
+          >
+            <Sparkles className="w-4 h-4 text-amber-400" />
+            <span>Sandbox Google Account (Debnath Arnab)</span>
           </button>
 
           <div className="pt-2 border-t border-slate-800 text-[11px] text-slate-500 flex items-center justify-center space-x-2">
