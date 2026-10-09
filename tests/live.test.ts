@@ -36,5 +36,5 @@ describe('Live OpenRouter / OmniRoute Integration Test', () => {
     expect(reply).toBeDefined();
     expect(reply.length).toBeGreaterThan(5);
     console.log('✨ Live Anywhere Door Response:', reply);
-  }, 25000);
+  }, 45000);
 });

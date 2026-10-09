@@ -6,7 +6,8 @@
 # Ensures OmniRoute bridge remains active.
 # ==============================================================================
 
-LOG_FILE="/home/debnathsusmita098/DoraBot/monitor.log"
+DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+LOG_FILE="$DIR/monitor.log"
 THRESHOLD_KB=3800000 # ~3.8GB in KB
 
 echo "[$(date -u +'%Y-%m-%dT%H:%M:%SZ')] Starting DoraBot Watchdog Daemon" >> "$LOG_FILE"

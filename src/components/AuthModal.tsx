@@ -89,7 +89,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 onClick={handleSandboxLogin}
                 className="text-[11px] font-semibold text-amber-300 hover:text-amber-200 flex items-center space-x-1"
               >
-                <span>✨ Continue as Debnath Arnab (Sandbox Profile) →</span>
+                <span>✨ Continue with Sandbox / Demo Google Account →</span>
               </button>
             </div>
           )}
@@ -129,7 +129,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             className="w-full flex items-center justify-center space-x-2 py-2.5 px-4 rounded-xl bg-slate-900/80 hover:bg-slate-800 border border-sky-500/40 text-sky-200 font-semibold text-xs transition-all hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50"
           >
             <Sparkles className="w-4 h-4 text-amber-400" />
-            <span>Sandbox Google Account (Debnath Arnab)</span>
+            <span>Sandbox Google Account (Demo / Offline)</span>
           </button>
 
           <div className="pt-2 border-t border-slate-800 text-[11px] text-slate-500 flex items-center justify-center space-x-2">

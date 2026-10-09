@@ -88,12 +88,14 @@ export function App() {
 
   const [activeSessionId, setActiveSessionId] = useState<string>(DEFAULT_SESSION_ID);
   const [models, setModels] = useState<ModelOption[]>([
-    { id: 'openrouter/free', name: 'OpenRouter Free (Auto-Routing Pool)', provider: 'OpenRouter', context: '128k', recommended: true },
+    { id: 'anthropic/claude-opus-5.5', name: 'Claude Opus 5.5 (OmniRoute Smart Model)', provider: 'Anthropic', context: '200k', recommended: true },
+    { id: 'openai/gpt-6-astra', name: 'GPT-6 Astra (OmniRoute Frontier Model)', provider: 'OpenAI', context: '128k', recommended: false },
+    { id: 'openrouter/free', name: 'OpenRouter Free (Auto-Routing Pool)', provider: 'OpenRouter', context: '128k', recommended: false },
     { id: 'nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free', name: 'Nvidia Nemotron 30B Reasoning (Free)', provider: 'Nvidia', context: '32k' },
     { id: 'google/gemma-4-31b-it:free', name: 'Google Gemma 4 31B (Free)', provider: 'Google', context: '32k' },
     { id: 'nvidia/nemotron-3.5-lightning:free', name: 'Nvidia Nemotron 3.5 Lightning (Free)', provider: 'Nvidia', context: '64k' },
   ]);
-  const [selectedModel, setSelectedModel] = useState<string>('openrouter/free');
+  const [selectedModel, setSelectedModel] = useState<string>('anthropic/claude-opus-5.5');
   const [user, setUser] = useState<UserProfile | null>(null);
   const [systemHealth, setSystemHealth] = useState<SystemHealth | null>(null);
 

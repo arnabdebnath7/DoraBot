@@ -4,7 +4,7 @@
 # Controls background daemon that monitors disk usage (<4GB) & OmniRoute bridge
 # ==============================================================================
 
-DIR="/home/debnathsusmita098/DoraBot"
+DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 PID_FILE="$DIR/.watchdog.pid"
 SCRIPT="$DIR/scripts/disk-monitor.sh"
 LOG_FILE="$DIR/monitor.log"

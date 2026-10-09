@@ -50,11 +50,36 @@ export function initFirebase() {
     auth = getAuth(app);
     googleProvider = new GoogleAuthProvider();
     googleProvider.setCustomParameters({ prompt: 'select_account' });
+    ensureFirebaseObserver(auth);
     return auth;
   } catch (err) {
     console.warn('Firebase initialization skipped or failed:', err);
     return null;
   }
+}
+
+// Module-level Firebase Auth observer
+let isFirebaseObserverInitialized = false;
+
+function ensureFirebaseObserver(authInstance: Auth) {
+  if (isFirebaseObserverInitialized) return;
+  isFirebaseObserverInitialized = true;
+
+  firebaseOnAuthStateChanged(authInstance, (user: User | null) => {
+    if (user) {
+      const profile: UserProfile = {
+        uid: user.uid,
+        displayName: user.displayName,
+        email: user.email,
+        photoURL: user.photoURL,
+        providerId: 'google.com',
+      };
+      localStorage.setItem(MOCK_STORAGE_KEY, JSON.stringify(profile));
+      notifyAuthListeners(profile);
+    } else if (!getCurrentLocalUser()) {
+      notifyAuthListeners(null);
+    }
+  });
 }
 
 // Attempt initial init
@@ -86,11 +111,11 @@ export function getCurrentLocalUser(): UserProfile | null {
   return null;
 }
 
-export async function loginWithSandboxGoogle(): Promise<UserProfile> {
+export async function loginWithSandboxGoogle(name?: string, email?: string): Promise<UserProfile> {
   const mockUser: UserProfile = {
     uid: 'google-uid-dorabot-888',
-    displayName: 'Debnath Arnab',
-    email: 'debnatharnab64@gmail.com',
+    displayName: name || import.meta.env.VITE_SANDBOX_NAME || 'Debnath Arnab',
+    email: email || import.meta.env.VITE_SANDBOX_EMAIL || 'debnatharnab64@gmail.com',
     photoURL: 'https://lh3.googleusercontent.com/a/default-user=s96-c',
     providerId: 'google.com',
     isAnonymous: false,
@@ -166,30 +191,8 @@ export function subscribeAuthState(callback: (user: UserProfile | null) => void)
     callback(null);
   }
 
-  let firebaseUnsub: (() => void) | null = null;
-  if (auth) {
-    firebaseUnsub = firebaseOnAuthStateChanged(auth, (user: User | null) => {
-      if (user) {
-        const profile: UserProfile = {
-          uid: user.uid,
-          displayName: user.displayName,
-          email: user.email,
-          photoURL: user.photoURL,
-          providerId: 'google.com',
-        };
-        localStorage.setItem(MOCK_STORAGE_KEY, JSON.stringify(profile));
-        notifyAuthListeners(profile);
-      } else if (!getCurrentLocalUser()) {
-        notifyAuthListeners(null);
-      }
-    });
-  }
-
   return () => {
     authListeners.delete(callback);
-    if (firebaseUnsub) {
-      firebaseUnsub();
-    }
   };
 }
 

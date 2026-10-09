@@ -16,6 +16,8 @@ app.use(express.json({ limit: '10mb' }));
 
 // Supported Free & High-Capability Models
 const AVAILABLE_MODELS = [
+  { id: 'anthropic/claude-opus-5.5', name: 'Claude Opus 5.5 (OmniRoute Smart Model)', provider: 'Anthropic', context: '200k', recommended: true },
+  { id: 'openai/gpt-6-astra', name: 'GPT-6 Astra (OmniRoute Frontier Model)', provider: 'OpenAI', context: '128k', recommended: false },
   { id: 'openrouter/free', name: 'OpenRouter Free (Auto-Routing Smart Pool)', provider: 'OpenRouter', context: '128k', recommended: true },
   { id: 'nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free', name: 'Nvidia Nemotron 30B Reasoning (Free)', provider: 'Nvidia', context: '32k' },
   { id: 'google/gemma-4-31b-it:free', name: 'Google Gemma 4 31B (Free)', provider: 'Google', context: '32k' },
@@ -154,6 +156,8 @@ function sanitizeResponse(text: string): string {
 async function callLLM(model: string, messages: any[]): Promise<string> {
   const modelsToTry = [
     model,
+    'anthropic/claude-opus-5.5',
+    'openai/gpt-6-astra',
     'openrouter/free',
     'nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free',
     'nvidia/nemotron-3.5-lightning:free'
@@ -346,10 +350,9 @@ app.post('/api/chat', async (req: Request, res: Response) => {
 
   const persona = MINI_DORA_PERSONAS[miniDoraId] || MINI_DORA_PERSONAS['dora-classic'];
 
-  // Intercept prompt leak & injection probes before LLM
-  const hasAttackProbe = messages.some(
-    (m: any) => m.role === 'user' && isPromptLeakOrAttack(m.content)
-  );
+  // Intercept prompt leak & injection probes on latest user query
+  const lastUser = [...messages].reverse().find((m: any) => m.role === 'user');
+  const hasAttackProbe = !!lastUser && isPromptLeakOrAttack(lastUser.content);
 
   if (hasAttackProbe) {
     res.json({
