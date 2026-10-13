@@ -188,6 +188,7 @@ async function callLLM(model: string, messages: any[]): Promise<string> {
           body: JSON.stringify({
             model: currentModel,
             messages,
+            max_tokens: 1500,
           }),
           signal: AbortSignal.timeout(18000),
         });
@@ -214,6 +215,7 @@ async function callLLM(model: string, messages: any[]): Promise<string> {
           body: JSON.stringify({
             model: currentModel,
             messages,
+            max_tokens: 1500,
           }),
           signal: AbortSignal.timeout(20000),
         });
