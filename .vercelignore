@@ -1,0 +1,10 @@
+node_modules
+.git
+.planning
+.ralph
+scripts
+tests
+monitor.log
+.watchdog.pid
+*.apk
+*.log

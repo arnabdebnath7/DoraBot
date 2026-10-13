@@ -9,7 +9,19 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3001;
 const OMNIROUTE_URL = process.env.OMNIROUTE_URL || 'http://127.0.0.1:20129';
-const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY || '';
+let OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY || '';
+if (!OPENROUTER_API_KEY) {
+  try {
+    const fs = require('fs');
+    const path = require('path');
+    const omniEnv = path.join(process.env.HOME || '/home/debnathsusmita098', '.omniroute', '.env');
+    if (fs.existsSync(omniEnv)) {
+      const content = fs.readFileSync(omniEnv, 'utf-8');
+      const match = content.match(/OPENROUTER_API_KEY=(.*)/);
+      if (match) OPENROUTER_API_KEY = match[1].trim();
+    }
+  } catch (_e) {}
+}
 
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
@@ -393,7 +405,7 @@ app.post('/api/chat', async (req: Request, res: Response) => {
   }
 });
 
-if (process.env.NODE_ENV !== 'test') {
+if (process.env.NODE_ENV !== 'test' && !process.env.VERCEL) {
   app.listen(PORT, () => {
     console.log(`✨ DoraBot Server running on http://127.0.0.1:${PORT}`);
   });
